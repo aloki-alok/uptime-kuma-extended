@@ -358,6 +358,10 @@ let needSetup = false;
     const statusPageRouter = require("./routers/status-page-router");
     app.use(statusPageRouter);
 
+    // Slack Router (POST /api/slack/incident)
+    const slackRouter = require("./routers/slack-router");
+    app.use(slackRouter);
+
     // Universal Route Handler, must be at the end of all express routes.
     app.get("*", async (_request, response) => {
         if (_request.originalUrl.startsWith("/upload/")) {
