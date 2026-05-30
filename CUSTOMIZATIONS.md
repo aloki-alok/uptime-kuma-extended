@@ -36,6 +36,7 @@ page in the editor. Longer ranges are time-bucketed into ~100 bars.
   | `SLACK_ALLOWED_TEAM_ID` | no | — | Comma-separated Slack team IDs allowed to post |
 
 ### Slack app setup
+
 1. Create a Slack app → **Slash Commands** → new command `/incident`,
    Request URL = `https://<your-status-host>/api/slack/incident`.
 2. Copy the app's **Signing Secret** into the `SLACK_SIGNING_SECRET` env var.

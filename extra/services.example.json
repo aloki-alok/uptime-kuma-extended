@@ -1,15 +1,15 @@
 {
-  "statusPageSlug": "all",
-  "groupName": "Services",
-  "defaults": {
-    "type": "http",
-    "method": "GET",
-    "interval": 60,
-    "maxretries": 1,
-    "acceptedStatuscodes": ["200-299"]
-  },
-  "services": [
-    { "name": "Example Service",   "url": "https://example.com/health" },
-    { "name": "Example Service 2", "url": "https://example.org/health", "interval": 120 }
-  ]
+    "statusPageSlug": "all",
+    "groupName": "Services",
+    "defaults": {
+        "type": "http",
+        "method": "GET",
+        "interval": 60,
+        "maxretries": 1,
+        "acceptedStatuscodes": ["200-299"]
+    },
+    "services": [
+        { "name": "Example Service", "url": "https://example.com/health" },
+        { "name": "Example Service 2", "url": "https://example.org/health", "interval": 120 }
+    ]
 }

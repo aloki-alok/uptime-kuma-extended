@@ -45,7 +45,7 @@ const main = async () => {
     }
 
     const groupName = config.groupName || "Services";
-    let group = await R.findOne("group", " name = ? AND status_page_id = ? ", [ groupName, statusPageID ]);
+    let group = await R.findOne("group", " name = ? AND status_page_id = ? ", [groupName, statusPageID]);
     if (!group) {
         group = R.dispense("group");
         group.name = groupName;
@@ -71,7 +71,7 @@ const main = async () => {
             continue;
         }
 
-        let monitor = await R.findOne("monitor", " name = ? ", [ svc.name ]);
+        let monitor = await R.findOne("monitor", " name = ? ", [svc.name]);
         if (monitor) {
             console.log(`  exists: monitor "${svc.name}" (id=${monitor.id})`);
         } else {
@@ -82,11 +82,14 @@ const main = async () => {
             monitor.method = svc.method || d.method || "GET";
             monitor.interval = interval(svc);
             monitor.retry_interval = svc.retryInterval || d.retryInterval || interval(svc);
-            monitor.resend_interval = svc.resendInterval != null ? svc.resendInterval : (d.resendInterval != null ? d.resendInterval : 0);
-            monitor.maxretries = svc.maxretries != null ? svc.maxretries : (d.maxretries != null ? d.maxretries : 1);
+            monitor.resend_interval =
+                svc.resendInterval != null ? svc.resendInterval : d.resendInterval != null ? d.resendInterval : 0;
+            monitor.maxretries = svc.maxretries != null ? svc.maxretries : d.maxretries != null ? d.maxretries : 1;
             monitor.upside_down = 0;
             monitor.active = 1;
-            monitor.accepted_statuscodes_json = JSON.stringify(svc.acceptedStatuscodes || d.acceptedStatuscodes || [ "200-299" ]);
+            monitor.accepted_statuscodes_json = JSON.stringify(
+                svc.acceptedStatuscodes || d.acceptedStatuscodes || ["200-299"]
+            );
             monitor.weight = 2000;
             monitor.timeout = svc.timeout || d.timeout || Math.round(interval(svc) * 0.8 * 10) / 10;
             await R.store(monitor);
@@ -95,7 +98,10 @@ const main = async () => {
         }
 
         // Ensure group membership (idempotent)
-        const membership = await R.findOne("monitor_group", " monitor_id = ? AND group_id = ? ", [ monitor.id, group.id ]);
+        const membership = await R.findOne("monitor_group", " monitor_id = ? AND group_id = ? ", [
+            monitor.id,
+            group.id,
+        ]);
         if (!membership) {
             const mg = R.dispense("monitor_group");
             mg.monitor_id = monitor.id;
