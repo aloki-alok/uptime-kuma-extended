@@ -3,6 +3,7 @@ const crypto = require("crypto");
 const querystring = require("querystring");
 const dayjs = require("dayjs");
 const { R } = require("redbean-node");
+const apicache = require("../modules/apicache");
 const StatusPage = require("../model/status_page");
 const { log } = require("../../src/util");
 
@@ -139,6 +140,7 @@ router.post(
                     "UPDATE incident SET pin = 0, active = 0, last_updated_date = ? WHERE active = 1 AND status_page_id = ?",
                     [ R.isoDateTime(dayjs.utc()), statusPageID ]
                 );
+                apicache.clear();
                 log.info("slack", `Incident(s) resolved on "${slug}" by ${userName}`);
                 return response.status(200).json({
                     response_type: "in_channel",
@@ -155,6 +157,7 @@ router.post(
             incidentBean.status_page_id = statusPageID;
             incidentBean.created_date = R.isoDateTime(dayjs.utc());
             await R.store(incidentBean);
+            apicache.clear();
 
             log.info("slack", `Incident posted on "${slug}" by ${userName}: ${parsed.title}`);
             return response.status(200).json({
