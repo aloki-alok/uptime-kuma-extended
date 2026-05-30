@@ -1,3 +1,27 @@
+<!--
+  ────────────────────────────────────────────────────────────────────────────
+  This is a FORK of Uptime Kuma. See the "Fork notice" below.
+  ────────────────────────────────────────────────────────────────────────────
+-->
+
+> ## Fork notice
+>
+> This is a fork of **[Uptime Kuma](https://github.com/louislam/uptime-kuma)** by
+> [@louislam](https://github.com/louislam) and contributors. All credit for
+> Uptime Kuma itself goes to them. Licensed under MIT (see [LICENSE](./LICENSE)).
+>
+> On top of upstream — specifically [PR #5916](https://github.com/louislam/uptime-kuma/pull/5916)
+> (configurable heartbeat-bar range) — this fork adds:
+>
+> - **`POST /api/slack/incident`** — a Slack slash-command endpoint to post/resolve
+>   status-page incidents, authenticated by Slack request signature.
+> - **`extra/bulk-add-monitors.js`** — bulk-create HTTP monitors from a JSON file.
+>
+> See **[CUSTOMIZATIONS.md](./CUSTOMIZATIONS.md)** for usage and configuration.
+> The rest of this README is upstream's original.
+
+---
+
 <div align="center" width="100%">
     <img src="./public/icon.svg" width="128" alt="Uptime Kuma Logo" />
 </div>
