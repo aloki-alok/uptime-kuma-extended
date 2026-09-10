@@ -4,15 +4,55 @@ const { UptimeKumaServer } = require("../uptime-kuma-server");
 const StatusPage = require("../model/status_page");
 const { allowDevAllOrigin, sendHttpError } = require("../util-server");
 const { R } = require("redbean-node");
-const { badgeConstants, UP, DOWN, MAINTENANCE, PENDING } = require("../../src/util");
+const { badgeConstants, UP, DOWN, MAINTENANCE, PENDING, log } = require("../../src/util");
 const { makeBadge } = require("badge-maker");
 const { UptimeCalculator } = require("../uptime-calculator");
 const dayjs = require("dayjs");
+const { buildStatusExport, hasValidBearerToken } = require("../status-export");
+const { statusExportAuthRateLimiter, statusExportRateLimiter } = require("../rate-limiter");
 
 let router = express.Router();
 
 let cache = apicache.middleware;
 const server = UptimeKumaServer.getInstance();
+
+router.get("/api/status-export/v1/:slug", async (request, response) => {
+    response.set("Cache-Control", "no-store");
+    if (typeof process.env.STATUS_EXPORT_TOKEN !== "string" || process.env.STATUS_EXPORT_TOKEN.length < 32) {
+        response.status(503).json({ error: { code: "status_export_unavailable" } });
+        return;
+    }
+    if (!hasValidBearerToken(request.get("Authorization"))) {
+        if (!(await statusExportAuthRateLimiter.pass())) {
+            response.status(429).json({ error: { code: "rate_limit_exceeded" } });
+            return;
+        }
+        response.set("WWW-Authenticate", "Bearer");
+        response.status(401).json({ error: { code: "unauthorized" } });
+        return;
+    }
+    if (!(await statusExportRateLimiter.pass())) {
+        response.status(429).json({ error: { code: "rate_limit_exceeded" } });
+        return;
+    }
+
+    try {
+        const slug = request.params.slug.toLowerCase();
+        if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(slug)) {
+            response.status(404).json({ error: { code: "status_page_not_found" } });
+            return;
+        }
+        const payload = await buildStatusExport(slug);
+        if (!payload) {
+            response.status(404).json({ error: { code: "status_page_not_found" } });
+            return;
+        }
+        response.json(payload);
+    } catch (error) {
+        log.error("status-export", error);
+        response.status(503).json({ error: { code: "status_export_unavailable" } });
+    }
+});
 
 router.get("/status/:slug", cache("5 minutes"), async (request, response) => {
     let slug = request.params.slug;

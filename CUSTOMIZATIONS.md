@@ -42,7 +42,37 @@ page in the editor. Longer ranges are time-bucketed into ~100 bars.
 2. Copy the app's **Signing Secret** into the `SLACK_SIGNING_SECRET` env var.
 3. (Optional) set `SLACK_ALLOWED_TEAM_ID` to your workspace's team ID.
 
-## 3. Bulk-add monitors
+## 3. Private status export
+
+`GET /api/status-export/v1/:slug` provides monitoring data to an independently
+hosted status page. The route is not cached and never returns monitor URLs,
+heartbeat messages, raw monitor IDs, incidents, maintenance copy, or notification
+configuration.
+
+Set both environment variables before starting the server:
+
+| Variable                   | Required | Purpose                                                                     |
+| -------------------------- | -------- | --------------------------------------------------------------------------- |
+| `STATUS_EXPORT_TOKEN`      | yes      | Bearer token with at least 32 characters                                    |
+| `STATUS_EXPORT_COMPONENTS` | yes      | JSON mapping from published status-page monitor IDs to public component IDs |
+
+Example mapping for a status page with the slug `all`:
+
+```json
+{ "all": { "1": "api", "2": "website" } }
+```
+
+Request the export with `Authorization: Bearer <token>`. The configured mapping
+must exactly match the public monitors on the requested status page. A mismatch
+fails closed with `503` instead of returning partial or mislabeled data.
+
+The response contains current state, the true latest check time, up to 60 sparse
+one-minute latency averages, and exactly 90 UTC history days for every mapped
+component. The top-level `latestCheckAt` is the oldest component check so one
+stale monitor cannot be hidden by fresher monitors. The route permits 10
+authenticated requests per minute per server instance.
+
+## 4. Bulk-add monitors
 
 `extra/bulk-add-monitors.js` reads a JSON file and creates HTTP monitors,
 attaching them to a status-page group. Idempotent on monitor name. See
